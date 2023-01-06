@@ -10,13 +10,12 @@ using namespace std;
 
 char** initializeBoard();
 
-
+void printBoard(char** board);
 
 int main() {
     //creating the board of the game
     char** board = initializeBoard();
-    cout << "Board initialized!";
-    
+    printBoard(board);
     return 0;
 }
 
@@ -33,5 +32,16 @@ char** initializeBoard(){
     return board;
 }
 
-
+void printBoard(char** board) {
+    cout << "\n";
+    
+    for (int i = 0; i < ROWS; i++){
+        cout << "| ";
+        for (int j = 0; j < COLS; j++){
+            cout << board[i][j] << " ";
+        }
+        cout << "|\n"; 
+    }
+    cout << "-----------------";
+}
 
