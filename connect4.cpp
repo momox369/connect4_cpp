@@ -17,27 +17,27 @@ int main() {
     string player1 = chooseRandomPlayer(name1, name2);
     string player2 = (player1.compare(name1) == 0) ? name2 : name1;
     cout << red << "\nPlayer 1 is: " << player1;
-    cout << yellow << "\nPlayer 2 is: " << player2 << reset << "\n\n"; 
+    cout << yellow << "\nPlayer 2 is: " << player2 << reset << "\n"; 
 
     //creating the board for the game
-    char** board = initializeBoard();
+    string** board = initializeBoard();
     
+
     int numberOfMoves = 0,
     turn = 1; //Player 1 start
     bool win = false;
 
-    while (!win && numberOfMoves < ROWS * COLS) {
-
+    while (!win && numberOfMoves <= ROWS * COLS) {
         if (turn == 1){
-            cout << "\n\n ==" << p1 << "'s turn!==";
+            cout << "\n\n ==" << red << player1 << reset << "'s turn!==";
         }
         else {
-            cout << "\n\n ==" << p2 << "'s turn!==";
+            cout << "\n\n ==" << yellow << player2 << reset << "'s turn!==";
         }
 
         printBoard(board);
         
-        //ask the player for a move
+        //ask the player for a move (store in a string, since it's easier to test for non-desirable input)
         string input = "";
         cout << "\nPlease enter a valid column number: ";      
         cin >> input;
@@ -49,7 +49,7 @@ int main() {
 
         //if the flow of control exits the while loop, then validInput return true
         int column = stoi(input);
-        cout << "\nINSERTED AN X IN THE COLUMN NUMBER SUCCESSFULLY: " << column; 
+        insertColumn(board, column, turn);
         numberOfMoves++;
         turn = (turn == 1) ? 2 : 1; //swipe players
     }
@@ -58,20 +58,28 @@ int main() {
     return 0;
 }
 
-char** initializeBoard(){
-    char** board = new char*[ROWS];
+string** initializeBoard(){
+    //function that creates a ROWS x COLS board for the game
+    //requires: nothing
+    //effects: return a 2D array of strings
+
+    string** board = new string*[ROWS];
     for (int i = 0; i < ROWS; i++){
-        board[i] = new char[COLS];
+        board[i] = new string[COLS];
     }
     for (int i = 0; i < ROWS; i++){
         for (int j = 0; j < COLS; j++){
-            board[i][j] = 'O';
+            board[i][j] = "O";
         }
     }
     return board;
 }
 
-void printBoard(char** board) {
+void printBoard(string** board) {
+    //prints the passed board
+    //requires: dimensions of the board ROWS x COLS
+    //effects: prints the board and return nothing
+
     cout << "\n";
     
     for (int i = 0; i < ROWS; i++){
@@ -98,12 +106,15 @@ string chooseRandomPlayer(string name1, string name2) {
     return (random % 2 == 0) ? name1 : name2; 
 }
 
-bool validInput (char** board, string input){
+bool validInput (string** board, string input){
+    /*
+    this function checks the validity of the user's input according to the game's rules
+    requires: the current game board along with the user input
+    effects: return true if the input is an integer between 1 and 7, and false otherwise.
+    */
     bool number = isNumeric(input);
     int inputIntegerRepresentation; 
     if (number) { inputIntegerRepresentation = stoi(input); }
-
-    cout << "\ntesting: number: " << number << ", inputIntegerREpresentation: " << inputIntegerRepresentation << "\n";
 
     if (!number){   //sequence of letters characters
         cout << magenta << "\nINVALID INPUT! INSERT A INTEGER NUMBER!" << reset;
@@ -116,25 +127,56 @@ bool validInput (char** board, string input){
     }
 
     else {
-        if (board[0][inputIntegerRepresentation] != 'O'){
-            cout << magenta << "\nINVALID INPUT! COLUMN IS FULL!" << reset;
+        if (!isEqualToEmptyToken(board[0][inputIntegerRepresentation-1])){
+            cout << magenta << "\nINVALID INPUT! GIVEN COLUMN IS FULL!" << reset;
             return false;
         }
-        else {
-            return true;
-        }
+        return true;
     }
+
     return false;
 }
        
-void insertColumn(char** board, int column_number, int turn){
+void insertColumn(string** board, int column_number, int turn){
+    string player1_token = "\u001b[31;1mX\u001b[0m",
+        player2_token = "\u001b[33mX\u001b[0m";
 
+    for (int row = ROWS-1; row >= 0; row--){
+        if (isEqualToEmptyToken(board[row][column_number-1])) { 
+            if (turn == 1){
+                board[row][column_number-1] = player1_token;
+                break;
+            }
+
+            else {
+                board[row][column_number-1] = player2_token;
+                break;
+            }
+        }
+    }
 }
 
+
+//helper functions
+
 bool isNumeric(string s) {
+    //This function checks if a string represent an integer
+    //requires: nothing
+    //effects: return true if given string is a representation of a number
+
     for (char c : s) {
         if (isdigit(c) == 0)
             return false;
     }
     return true;
+}
+
+bool isEqualToEmptyToken (string s){
+    //This function checks whether a string is equal to the empty character of the board "O", or not.
+    //requires: the string that need to be checked
+    //effects: return if string ?= "O"
+    if (s.size() >= 2){
+        return false;
+    }
+       return s[0] == 'O';
 }
