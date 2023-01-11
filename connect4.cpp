@@ -2,7 +2,14 @@
 
 
 int main() {
-    
+
+    //These 4 lines of codes have the purpose to make the colors appears in cmd
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    SetConsoleMode(hInput, ENABLE_VIRTUAL_TERMINAL_INPUT);
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleMode(hOutput, ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    //
+
     cout << red << "WELCOME TO " << reset << yellow << "CONNECT 4" << magenta << " by maurice ;)\n" << reset;
     
     //Taking the players names
@@ -24,10 +31,11 @@ int main() {
     
 
     int numberOfMoves = 0,
-    turn = 1; //Player 1 start
-    bool win = false;
+    winner = 0, 
+    turn = 1; //1 means player 1 turns, and 2 means player 2 turn
+    
 
-    while (!win && numberOfMoves <= ROWS * COLS) {
+    while (winner == 0 && numberOfMoves < ROWS * COLS) {
         if (turn == 1){
             cout << "\n\n ==" << red << player1 << reset << "'s turn!==";
         }
@@ -50,10 +58,12 @@ int main() {
         //if the flow of control exits the while loop, then validInput return true
         int column = stoi(input);
         insertColumn(board, column, turn);
+        winner = checkWinnerningMove(board);
         numberOfMoves++;
-        turn = (turn == 1) ? 2 : 1; //swipe players
+        turn = (turn == 1) ? 2 : 1; //switch players
     }
 
+    printBoard(board);
     
     return 0;
 }
@@ -138,8 +148,11 @@ bool validInput (string** board, string input){
 }
        
 void insertColumn(string** board, int column_number, int turn){
-    string player1_token = "\u001b[31;1mX\u001b[0m",
-        player2_token = "\u001b[33mX\u001b[0m";
+    /*
+    this funct insert a colored X in the column the player inserted in, by modyfying the board itself
+    requires: the current board game and a valid column number (not array indexed)
+    effects: modify the board game and place a red X for player 1 and a yellow X for player 2 in the corresponding column
+    */
 
     for (int row = ROWS-1; row >= 0; row--){
         if (isEqualToEmptyToken(board[row][column_number-1])) { 
@@ -156,9 +169,101 @@ void insertColumn(string** board, int column_number, int turn){
     }
 }
 
+int checkWinnerningMove(string** board){
+    /*
+    This function checks if there exists 4 consecutive same colored X in any direction
+    requries: the current game board
+    effects: return 0 if there is no winner (4 consecutive same colored X in any direction)
+             return 1 if player 1 wins
+             return 2 if player 2 wins
+    */
+
+    int winnerPlayer = 0;
+
+    //checking vertically
+    for (int c = 0; c < COLS; c++) {
+        for (int r = 0; r < ROWS - 3; r++) {
+            if (board[r][c] == player1_token &&
+                board[r + 1][c] == player1_token &&
+                board[r + 2][c] == player1_token &&
+                board[r + 3][c] == player1_token) {
+
+                winnerPlayer = 1;
+            }
+            else if (board[r][c] == player2_token &&
+                board[r + 1][c] == player2_token &&
+                board[r + 2][c] == player2_token &&
+                board[r + 3][c] == player2_token) {
+
+                winnerPlayer = 2;
+            }
+        }
+    } 
+
+    //checking horizontally
+    for (int c = 0; c < COLS-3; c++) {
+        for (int r = 0; r < ROWS; r++) {
+            if (board[r][c] == player1_token &&
+                board[r][c + 1] == player1_token &&
+                board[r][c + 2] == player1_token &&
+                board[r][c + 3] == player1_token) {
+
+                winnerPlayer = 1;
+            }
+            else if (board[r][c] == player2_token &&
+                     board[r][c + 1] == player2_token &&
+                     board[r][c + 2] == player2_token &&
+                     board[r][c + 3] == player2_token){
+
+                winnerPlayer = 2;
+            }
+        }
+    }
+
+    //checking diagonaly (positive slope)
+    for (int c = 0; c < COLS - 3; c++) {
+        for (int r = 0; r < ROWS - 3; r++) {
+            if (board[r][c] == player1_token &&
+                board[r + 1][c + 1] == player1_token &&
+                board[r + 2][c + 2] == player1_token &&
+                board[r + 3][c + 3] == player1_token) {
+
+                winnerPlayer = 1;
+            }
+            else if (board[r][c] == player2_token &&
+                    board[r + 1][c + 1] == player2_token &&
+                    board[r + 2][c + 2] == player2_token &&
+                    board[r + 3][c + 3] == player2_token) {
+
+                winnerPlayer = 2;
+            }
+        }
+    }
+
+    //checking diagonaly (negative slope)
+    for (int c = 0; c < 7 - 3; c++) {
+        for (int r = 3; r < 6; r++) {
+            if (board[r][c] == player1_token &&
+                board[r - 1][c + 1] == player1_token &&
+                board[r - 2][c + 2] == player1_token &&
+                 board[r - 3][c + 3] == player1_token) {
+
+                winnerPlayer = 1;
+            }
+            else if (board[r][c] == player2_token &&
+                board[r - 1][c + 1] == player2_token &&
+                board[r - 2][c + 2] == player2_token &&
+                 board[r - 3][c + 3] == player2_token) {
+
+                winnerPlayer = 2;
+            }
+        }
+    }
+
+    return winnerPlayer;
+}
 
 //helper functions
-
 bool isNumeric(string s) {
     //This function checks if a string represent an integer
     //requires: nothing
