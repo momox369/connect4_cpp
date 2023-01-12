@@ -1,3 +1,4 @@
+//connect 4 representation implemeted by Maurice T. Salameh
 #include "connect4.h"
 
 
@@ -9,15 +10,16 @@ int main() {
     HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleMode(hOutput, ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     //
-
-    cout << red << "WELCOME TO " << reset << yellow << "CONNECT 4" << magenta << " by maurice ;)\n" << reset;
     
+    introConnect4();
+    cout << red << "WELCOME TO " << reset << yellow << "CONNECT 4" << magenta << " by maurice ;)\n\n" << reset;
+
     //Taking the players names
     string name1, name2;
-    cout << "\nEnter player name: ";
+    cout << "\nEnter a player name " << magenta << "(no space): " << reset;
     cin >> name1;
 
-    cout << "Enter another player name: ";
+    cout << "Enter another player name: " << magenta << "(no space): " << reset;
     cin >> name2;
 
     //Assigning to each player their turns (player 1 or 2)
@@ -29,11 +31,10 @@ int main() {
     //creating the board for the game
     string** board = initializeBoard();
     
-
     int numberOfMoves = 0,
     winner = 0, 
     turn = 1; //1 means player 1 turns, and 2 means player 2 turn
-    
+    float  duration, player1_time = 0, player2_time = 0;
 
     while (winner == 0 && numberOfMoves < ROWS * COLS) {
         if (turn == 1){
@@ -47,15 +48,24 @@ int main() {
         
         //ask the player for a move (store in a string, since it's easier to test for non-desirable input)
         string input = "";
+        clock_t start = clock();
         cout << "\nPlease enter a valid column number: ";      
         cin >> input;
-        
+
         while (!validInput(board, input)){
             cout << "\nPlease enter a valid column number: ";      
             cin >> input;
         }
 
         //if the flow of control exits the while loop, then validInput return true
+        clock_t end = clock();
+        duration = (float)((end-start)/CLOCKS_PER_SEC);
+
+        if (turn == 1) { 
+            player1_time += duration; }
+        else { 
+            player2_time += duration; }
+
         int column = stoi(input);
         insertColumn(board, column, turn);
         winner = checkWinnerningMove(board);
@@ -64,6 +74,7 @@ int main() {
     }
 
     printBoard(board);
+    announceWinner(winner, player1_time, player2_time);
     
     return 0;
 }
@@ -149,7 +160,7 @@ bool validInput (string** board, string input){
        
 void insertColumn(string** board, int column_number, int turn){
     /*
-    this funct insert a colored X in the column the player inserted in, by modyfying the board itself
+    this funct insert a mcolored X in the column the player inserted in, by modyfying the board itself
     requires: the current board game and a valid column number (not array indexed)
     effects: modify the board game and place a red X for player 1 and a yellow X for player 2 in the corresponding column
     */
@@ -171,9 +182,9 @@ void insertColumn(string** board, int column_number, int turn){
 
 int checkWinnerningMove(string** board){
     /*
-    This function checks if there exists 4 consecutive same colored X in any direction
+    This function checks if there exists 4 consecutive same mcolored X in any direction
     requries: the current game board
-    effects: return 0 if there is no winner (4 consecutive same colored X in any direction)
+    effects: return 0 if there is no winner (4 consecutive same mcolored X in any direction)
              return 1 if player 1 wins
              return 2 if player 2 wins
     */
@@ -263,6 +274,56 @@ int checkWinnerningMove(string** board){
     return winnerPlayer;
 }
 
+void announceWinner(int win, float time_player1, float time_player2){
+    /*
+    function that decides the winner and in case of tie, compares their players' play time.
+    requires: win to be 0, 1 or 2
+    effects: prints a winning message for the winning player.
+    */
+    if (win == 1){
+        cout << red << "\nPLAYER 1 WINS THE GAMES. CONGRATS!!!\n" << reset;
+    }
+    else if (win == 2){
+        cout << yellow << "\nPLAYER 2 WINS THE GAMES. CONGRATS!!!\n" << reset;
+    }
+    else {
+        if (time_player2 > time_player1){
+            cout << red << "\nPLAYER 1 WINS THE GAMES BY TIME ADVANTAGE. CONGRATS!!!\n" << reset;
+        }
+        else if (time_player1 > time_player2){
+            cout << yellow << "\nPLAYER 2 WINS THE GAMES BY TIME ADVANTAGE. CONGRATS!!!\n" << reset;
+        }
+        else {
+            cout << magenta << "\nNO WINNERS. THE GAME ENDS WITH A TIE!\n" << reset;
+        }
+    }
+}
+
+void introConnect4() {
+    /*This function introduce the game and its rule to the players
+    requires: nothing
+    effects: prints the rules of the games.
+    */
+
+    //definition of the game
+    cout << mcolored("CONNECT-FOUR") << " is a model of tic-tac-toe game for " << magenta << "TWO PLAYERS "
+    << reset << "in which \nplayers alternately place pieces on a vertical board in order \nto " << magenta << 
+    "connect 4 identical pieces sequentially in any direction." << reset << "\n\n";
+
+    //Rules
+    cout << mcolored("          RULES OF THE GAME\n");
+    cout << mcolored("1. ") << "The game board had 7 Columns and 6 Rows.\n";
+    cout << mcolored("2. ") << "There are " << rcolored("21 red") << " and " << ycolored("21 yellow") << " token.\n";
+    cout << mcolored("3. ") << "Player 1 always starts, with the " << rcolored("Red tokens") << ", and Player 2 takes the " << ycolored("Yellow tokens") << ".\n";
+    cout << mcolored("4. ") << "The tokens are inserted at the top of a column, and they will fall down and land \non the ground (if the column was empty) or on top of a previously inserted token.\n";
+    cout << mcolored("5. ") << rcolored("Red") << " starts, then " << rcolored("red") << " and " << ycolored("yellow") << " take turns.\n";
+    cout << mcolored("6. ") << "A player can only insert " << mcolored("one token") << " in only " << mcolored("one column") << ".\n";
+    cout << mcolored("7. ") << "A player can't insert a token in a " << mcolored("full column") << ".\n";
+    cout << mcolored("8. ") << "A player wins the game if they manage to form " << mcolored("a line of four tokens") << " of their color. \n(A line consists of several tokens, either in vertical, horizontal, or diagonal form, \nwhich contain only tokens of the same color.\n";
+    cout << mcolored("9. ") << "The game " << mcolored("ends") << "if one of the player " << mcolored("wins\n"); 
+    cout << mcolored("10. ") << "There will be " << mcolored("no ties") << ". In case of a tie on the board, the player that took " << mcolored("less over-all time") << " wins.\n\n";
+
+}
 //helper functions
 bool isNumeric(string s) {
     //This function checks if a string represent an integer
@@ -285,3 +346,4 @@ bool isEqualToEmptyToken (string s){
     }
        return s[0] == 'O';
 }
+
