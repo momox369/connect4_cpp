@@ -18,22 +18,26 @@ using namespace std;
 #define rcolored(x) red << x << reset
 #define ycolored(x) yellow << x << reset
 
-//functions header
-string** initializeBoard();
+string player1, player2;
 
-void printBoard(string** board);
+//functions header
+int** initializeBoard();
+
+void printBoard(int** board);
 
 string chooseRandomPlayer(string name1, string name2);
 
-bool validInput (string** board, string input);
+bool validInput (int** board, string input);
 
-void insertColumn(string**  board, int column_number, int turn);
+void insertColumn(int**  board, int column_number, int turn);
 
-int checkWinnerningMove(string** board);
+int checkWinnerningMove(int** board);
 
 void announceWinner(int win, float t1, float t2);
 
 void introConnect4();
+
+int modeChooser();
 
 //helper functions
 bool isNumeric(string s);
