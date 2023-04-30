@@ -19,6 +19,8 @@ using namespace std;
 #define ycolored(x) yellow << x << reset
 
 string player1, player2;
+const int MAX_DEPTH = 5;
+const int INF = 1e9;
 
 //functions header
 int** initializeBoard();
@@ -39,7 +41,21 @@ void introConnect4();
 
 int modeChooser();
 
+int evaluateBoard(int** board);
+
+bool isTerminalNode(int** board);
+
+int minimax(int** board, int depth, int alpha, int beta, bool maximizingPlayer);
+
+void undoMove(int** board, int col);
+
+int botMove(int** board);
+
 //helper functions
 bool isNumeric(string s);
 
 bool isEqualToEmptyToken (string s);
+
+int which_player(string name);
+
+bool isBotTurn(int turn);

@@ -15,6 +15,11 @@ int main() {
     cout << red << "WELCOME TO " << reset << yellow << "CONNECT 4" << magenta << " by maurice ;)\n\n" << reset;
 
     int mode = modeChooser(); //mode 1 for bot, mode 2 for pvp
+    if (mode == 1){
+        printf("PLAYER VS COMPUTER GAME WILL BEGIN");
+    } else  {
+        printf("PVP WILL BEGIN");
+    }
 
     //Taking the players names
     string name1, name2;
@@ -58,18 +63,47 @@ int main() {
         
         //ask the player for a move (store in a string, since it's easier to test for non-desirable input)
         string input = "";
-        clock_t start = clock();
-        cout << "\nPlease enter a valid column number: ";      
-        cin >> input;
+        int column;
 
-        while (!validInput(board, input)){
+        if (mode == 2) {
+            clock_t start = clock();
             cout << "\nPlease enter a valid column number: ";      
             cin >> input;
-        }
 
-        //if the flow of control exits the while loop, then validInput return true
-        clock_t end = clock();
-        duration = (float)((end-start)/CLOCKS_PER_SEC);
+            while (!validInput(board, input)){
+                cout << "\nPlease enter a valid column number: ";      
+                cin >> input;
+            }
+
+            //if the flow of control exits the while loop, then validInput return true
+            clock_t end = clock();
+            duration = (float)((end-start)/CLOCKS_PER_SEC);
+            column = stoi(input);
+        } 
+        else {
+            if (isBotTurn(turn)) { //it is the bot turn
+                clock_t start = clock();
+                cout << "\nThe computer is thinking...";      
+                column = botMove(board);
+                clock_t end = clock();
+                duration = (float)((end-start)/CLOCKS_PER_SEC);
+            }
+            else {
+                clock_t start = clock();
+                cout << "\nPlease enter a valid column number: ";      
+                cin >> input;
+
+                while (!validInput(board, input)){
+                    cout << "\nPlease enter a valid column number: ";      
+                    cin >> input;
+                }
+
+                //if the flow of control exits the while loop, then validInput return true
+                clock_t end = clock();
+                duration = (float)((end-start)/CLOCKS_PER_SEC);
+                column = stoi(input);
+            }
+        }
 
         if (turn == 1) { 
             player1_time += duration;
@@ -78,7 +112,7 @@ int main() {
             player2_time += duration;
         }
 
-        int column = stoi(input);
+        
         insertColumn(board, column, turn);
         winner = checkWinnerningMove(board);
         numberOfMoves++;
@@ -368,6 +402,210 @@ int modeChooser() {
     return stoi(inp); 
 }
 
+//Functions for the Bot Move
+/*
+int evaluateBoard(int** board) {
+    int score = 0,
+    PLAYER = which_player("Computer"),
+    OPPONENT = (PLAYER == 1)? 2: 1;
+
+
+    // Check rows for four in a row
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS - 3; j++) {
+            int count = 0;
+            for (int k = 0; k < 4; k++) {
+                if (board[i][j+k] == PLAYER) {
+                    count++;
+                } else if (board[i][j+k] == OPPONENT) {
+                    count = 0;
+                    break;
+                }
+            }
+            score += count*count*count;
+        }
+    }
+
+    // Check columns for four in a row
+    for (int i = 0; i < COLS; i++) {
+        for (int j = 0; j < ROWS - 3; j++) {
+            int count = 0;
+            for (int k = 0; k < 4; k++) {
+                if (board[j+k][i] == PLAYER) {
+                    count++;
+                } else if (board[j+k][i] == OPPONENT) {
+                    count = 0;
+                    break;
+                }
+            }
+            score += count*count*count;
+        }
+    }
+
+    // Check diagonal (down-right) for four in a row
+    for (int i = 0; i < ROWS - 3; i++) {
+        for (int j = 0; j < COLS - 3; j++) {
+            int count = 0;
+            for (int k = 0; k < 4; k++) {
+                if (board[i+k][j+k] == PLAYER) {
+                    count++;
+                } else if (board[i+k][j+k] == OPPONENT) {
+                    count = 0;
+                    break;
+                }
+            }
+            score += count*count*count;
+        }
+    }
+
+    // Check diagonal (down-left) for four in a row
+    for (int i = 0; i < ROWS - 3; i++) {
+        for (int j = 3; j < COLS; j++) {
+            int count = 0;
+            for (int k = 0; k < 4; k++) {
+                if (board[i+k][j-k] == PLAYER) {
+                    count++;
+                } else if (board[i+k][j-k] == OPPONENT) {
+                    count = 0;
+                    break;
+                }
+            }
+            score += count*count*count;
+        }
+    }
+
+    return score;
+}
+
+bool isTerminalNode(int** board) {
+    // Check for horizontal wins
+    for (int row = 0; row < ROWS; row++) {
+        for (int col = 0; col < COLS - 3; col++) {
+            if (board[row][col] != 0 &&
+                board[row][col] == board[row][col + 1] &&
+                board[row][col] == board[row][col + 2] &&
+                board[row][col] == board[row][col + 3]) {
+                return true;
+            }
+        }
+    }
+
+    // Check for vertical wins
+    for (int row = 0; row < ROWS - 3; row++) {
+        for (int col = 0; col < COLS; col++) {
+            if (board[row][col] != 0 &&
+                board[row][col] == board[row + 1][col] &&
+                board[row][col] == board[row + 2][col] &&
+                board[row][col] == board[row + 3][col]) {
+                return true;
+            }
+        }
+    }
+
+    // Check for diagonal wins (top-left to bottom-right)
+    for (int row = 0; row < ROWS - 3; row++) {
+        for (int col = 0; col < COLS - 3; col++) {
+            if (board[row][col] != 0 &&
+                board[row][col] == board[row + 1][col + 1] &&
+                board[row][col] == board[row + 2][col + 2] &&
+                board[row][col] == board[row + 3][col + 3]) {
+                return true;
+            }
+        }
+    }
+
+    // Check for diagonal wins (bottom-left to top-right)
+    for (int row = 3; row < ROWS; row++) {
+        for (int col = 0; col < COLS - 3; col++) {
+            if (board[row][col] != 0 &&
+                board[row][col] == board[row - 1][col + 1] &&
+                board[row][col] == board[row - 2][col + 2] &&
+                board[row][col] == board[row - 3][col + 3]) {
+                return true;
+            }
+        }
+    }
+
+    // Check if board is full
+    for (int row = 0; row < ROWS; row++) {
+        for (int col = 0; col < COLS; col++) {
+            if (board[row][col] == 0) {
+                return false;
+            }
+        }
+    }
+
+    // If none of the above conditions are true, return true (game is a tie)
+    return true;
+}
+
+int minimax(int** board, int depth, int alpha, int beta, bool maximizingPlayer) {
+    if (isTerminalNode(board) || depth == MAX_DEPTH) {
+        return evaluateBoard(board);
+    }
+
+    if (maximizingPlayer) {
+        int maxEval = -INF;
+        for (int col = 0; col < 7; ++col) {
+            if (board[0][col] == 0) {
+                insertColumn(board, col, 1);
+                int eval = minimax(board, depth+1, alpha, beta, false);
+                maxEval = max(maxEval, eval);
+                alpha = max(alpha, eval);
+                undoMove(board, col);
+                if (beta <= alpha) {
+                    break;
+                }
+            }
+        }
+        return maxEval;
+    } else {
+        int minEval = INF;
+        for (int col = 0; col < 7; ++col) {
+            if (board[0][col] == 0) {
+                insertColumn(board, col, 2);
+                int eval = minimax(board, depth+1, alpha, beta, true);
+                minEval = min(minEval, eval);
+                beta = min(beta, eval);
+                undoMove(board, col);
+                if (beta <= alpha) {
+                    break;
+                }
+            }
+        }
+        return minEval;
+    }
+}
+
+void undoMove(int** board, int col){
+    for (int row = 0; row < ROWS; row++){
+        if (board[row][col] != 0) { 
+            board[row][col] == 0;
+        }
+    }
+}
+
+int findBotMove(int** board) {
+    
+    int bestScore = -INF;
+    int bestMove = -1;
+    for (int col = 0; col < 7; ++col) {
+        if (board[0][col] == 0) {
+            insertColumn(board, col, 1);
+            int score = minimax(board, 0, -INF, INF, false);
+            undoMove(board, col);
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = col;
+            }
+        }
+    }
+    return bestMove;
+}
+*/
+int botMove(int** board){
+    return 1;
+}
 
 //helper functions
 bool isNumeric(string s) {
@@ -382,14 +620,13 @@ bool isNumeric(string s) {
     return true;
 }
 
-
-bool isEqualToEmptyToken (string s){
-    //This function checks whether a string is equal to the empty character of the board "O", or not.
-    //requires: the string that need to be checked
-    //effects: return if string ?= "O"
-    if (s.size() >= 2){
-        return false;
-    }
-       return s[0] == 'O';
+int which_player(string name) {
+    if (name.compare(player1) == 0){
+        return 1;
+    } return 2;
 }
 
+bool isBotTurn(int turn){
+    int bot_player = which_player("Computer");
+    return (bot_player == 1 && turn == 1) || (bot_player == 2 && turn == 2);
+}
