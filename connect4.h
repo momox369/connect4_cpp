@@ -8,6 +8,7 @@ using namespace std;
 #define COLS 7
 #define player1_token "\u001b[31;1mX\u001b[0m"
 #define player2_token "\u001b[33mX\u001b[0m"
+#define SEARCH_DEPTH 5
 
 //colors
 #define red "\u001b[31;1m"
@@ -21,6 +22,8 @@ using namespace std;
 string player1, player2;
 const int MAX_DEPTH = 5;
 const int INF = 1e9;
+int** board;
+int turns = 0;
 
 //functions header
 int** initializeBoard();
