@@ -1,6 +1,7 @@
 # Connect 4
 
 My own implementation of the connect4 game using C++. Check it out!!
+(P.S: the bot still need work on it ^-^)
 
 
 
